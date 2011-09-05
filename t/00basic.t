@@ -3,6 +3,7 @@ use Test::More;
 
 use IO::All;
 use Mason;
+use Test::Exception;
 
 my $DEBUG = 0;
 
@@ -74,6 +75,33 @@ my $interp = Mason->new(
 
     is( $output1, $output2 );
     isnt( $output3, $output1 );
+}
+
+{
+    my $output1;
+    lives_ok( sub { $output1 = $interp->run("/04is_rw_default")->output } );
+    ok( $output1 );
+}
+
+{
+    package Foo;
+    use Moose;
+    use MooseX::ClassAttribute;
+    class_has obj => ( default => sub { rand } );
+
+    package main;
+
+    throws_ok( sub { Foo->new->obj }, qr/^Can't locate object method "obj"/ );
+}
+
+{
+    package Bar;
+    use Moose;
+    has obj => ( default => sub { rand } );
+
+    package main;
+
+    throws_ok( sub { Bar->new->obj }, qr/^Can't locate object method "obj"/ );
 }
 
 done_testing();
