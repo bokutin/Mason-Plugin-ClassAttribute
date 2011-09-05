@@ -4,6 +4,8 @@ use Test::More;
 use IO::All;
 use Mason;
 
+my $DEBUG = 0;
+
 my $interp = Mason->new(
     comp_root => "t/comp",
     plugins => [
@@ -23,7 +25,7 @@ my $interp = Mason->new(
     my $output3 = $interp->run("/01handmaid")->output;
 
     is( $output1, $output2 );
-    isnt( $output1, $output3 );
+    isnt( $output3, $output1 );
 }
 
 {
@@ -32,8 +34,46 @@ my $interp = Mason->new(
     ok( io("t/comp/02class_has.mc")->touch );
     my $output3 = $interp->run("/02class_has")->output;
 
+    $DEBUG && diag( $output1 );
+    $DEBUG && diag( $output2 );
+    $DEBUG && diag( $output3 );
+
+    ok ( $output1 =~ s/has_default=1 // );
+    ok ( $output2 =~ s/has_default=1 // );
+    ok ( $output3 =~ s/has_default=1 // );
+
+    ok ( $output1 =~ s/default=CODE\S* // );
+    ok ( $output2 =~ s/default=CODE\S* // );
+    ok ( $output3 =~ s/default=CODE\S* // );
+
+    ok( $output1 );
+    ok( $output2 );
+    ok( $output3 );
+
     is( $output1, $output2 );
-    isnt( $output1, $output3 );
+    isnt( $output3, $output1 );
+}
+
+{
+    my $output1 = $interp->run("/03class_has_lazy")->output;
+    my $output2 = $interp->run("/03class_has_lazy")->output;
+    ok( io("t/comp/03class_has_lazy.mc")->touch );
+    my $output3 = $interp->run("/03class_has_lazy")->output;
+
+    $DEBUG && diag( $output1 );
+    $DEBUG && diag( $output2 );
+    $DEBUG && diag( $output3 );
+
+    ok( $output1 );
+    ok( $output2 );
+    ok( $output3 );
+
+    ok ( $output1 =~ s/has_value=0 // );
+    ok ( $output2 =~ s/has_value=1 // );
+    ok ( $output3 =~ s/has_value=0 // );
+
+    is( $output1, $output2 );
+    isnt( $output3, $output1 );
 }
 
 done_testing();
