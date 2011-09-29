@@ -12,11 +12,13 @@ before remove => sub {
         if ( !in_global_destruction() ) {
             my $compc = $entry->{compc};
 
-            use PadWalker qw(peek_sub);
-            my $ref  = peek_sub(\&Eval::Closure::_make_compiler)->{'%compiler_cache'};
-            my $name = $compc->meta->_class_attribute_var_name;
-            for ( grep { /\b$name\b/ } keys %$ref ) {
-                delete $ref->{$_};
+            if ( $compc->meta->can('_class_attribute_var_name') ) { # skip Moose::Role.
+                use PadWalker qw(peek_sub);
+                my $ref  = peek_sub(\&Eval::Closure::_make_compiler)->{'%compiler_cache'};
+                my $name = $compc->meta->_class_attribute_var_name;
+                for ( grep { /\b$name\b/ } keys %$ref ) {
+                    delete $ref->{$_};
+                }
             }
         }
     }
